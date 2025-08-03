@@ -1,0 +1,6 @@
+[package]
+name = "esame_17_06_2025"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
