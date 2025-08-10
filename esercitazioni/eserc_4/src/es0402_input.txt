@@ -1,0 +1,12 @@
+G gen1 - off
+S sw01 gen1  off
+S sw02 gen1 on
+L l01 sw01
+S sw03 l01 off
+L l02 sw03
+L l03 sw02
+L l04 sw03
+S sw04 sw02 off
+S sw05 sw04 off
+L l05 sw04
+L l06 sw05
