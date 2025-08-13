@@ -1,0 +1,8 @@
+[package]
+name = "eserc_5"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+crossbeam-utils = "0.8.21"
+itertools = "0.13"
