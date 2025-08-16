@@ -236,61 +236,37 @@ impl Filesystem {
     // if it's a dir, it must be empty
     // possible errors: NotFound, DirNotEmpty
     pub fn delete(&mut self, path: &str) -> Result<Node, FSError> {
-        // First check if the node exists and get its name
-        let path_obj = Path::new(path);
-        let node_name = path_obj.file_name()
-            .and_then(|name| name.to_str())
-            .ok_or(FSError::GenericError("Invalid path".to_string()))?;
-        
-        let parent_path = path_obj.parent()
-            .and_then(|p| p.to_str())
-            .unwrap_or("");
-
-        // Navigate to the node first to check if it exists and if it's a directory, check if it's empty
+        // Navigate to the node 
         let node = self.navigate_filesystem_mut(path)?;
-        match node {
-            Node::Dir(ref dir) => {
-                if !dir.children.is_empty() {
-                    return Err(FSError::DirNotEmpty);
-                }
-            },
-            Node::File(_) => {
-                // Files can always be deleted
-            }
-        }
+        let path_obj = Path::new(path);
 
-        // Now navigate to the parent directory to remove the node
-        let parent_node = self.navigate_filesystem_mut(parent_path)?;
-        
-        match parent_node {
-            Node::Dir(ref mut parent_dir) => {
-                // Find the index of the child to remove
-                let child_index = parent_dir.children.iter().position(|child| {
-                    match child {
-                        Node::Dir(child_dir) => child_dir.name == node_name,
-                        Node::File(child_file) => child_file.name == node_name,
-                    }
-                }).ok_or(FSError::NotFound)?;
-                
-                // Remove and return the node
-                let removed_node = parent_dir.children.remove(child_index);
-                Ok(removed_node)
+        match node {
+            Node::File(ref mut file) => {
+                let parent_node = self.navigate_filesystem_mut((path_obj).parent())?;
+                parent_node.child.pop(node);
+                return node
             },
-            Node::File(_) => Err(FSError::NotADir),
+            Node::Dir(ref mut dir) => {
+                if dir.child.empty() {
+                    let parent_node = self.navigate_filesystem_mut((path_obj).parent())?;
+                    parent_node.child.pop(node);
+                    return node
+                } else {
+                    return Err(FSError::DirNotEmpty)
+                }
+            }
         }
     }
 
     // get a reference to a node in the filesystem, given the path
-    pub fn get(&mut self, path: &str) -> Result<&Node, FSError> {
-        let node = self.navigate_filesystem_mut(path)?;
-        return Ok(node)
-    }
+    // pub fn get(&mut self, path: &str) -> Result<&Node, FSError> {
+    //     unimplemented!()
+    // }
 
     // get a mutable reference to a node in the filesystem, given the path
-    pub fn get_mut(&mut self, path: &str) -> Result<&mut Node, FSError> {
-        let mut node = self.navigate_filesystem_mut(path)?;
-        return Ok(node)
-    }
+    // pub fn get_mut(&mut self, path: &str) -> Result<&mut Node, FSError> {
+    //     unimplemented!()
+    // }
 
     // search for a list of paths in the filesystem
     // qs is a list query strings with constraints
@@ -301,9 +277,11 @@ impl Filesystem {
     // - "type:file" -> match only files
     // - "name:value" -> match only nodes with the given name
     // - "partname:value" -> match only nodes with the given string in the name
+
     // pub fn find<'a>(&'a self, qs: &[&'a str]) -> Vec<MatchResult> {
-    //     let mut results = Vec::new();
+    //     unimplemented!()
     // }
+
 
     // walk the filesystem, starting from the root, and call the closure for each node with its path
     // the first parameter of the closure is the path of the node, second is the node itself
